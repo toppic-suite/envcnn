@@ -1,14 +1,14 @@
 # Step-By-Step Guide for training the model
 ## Data Pre-Processing
 - Required Files
-1.	mzML/mzXML file containing top-down spectral data. Alternatively, a Raw file can also be used
+1.	An mzML/mzXML file containing top-down spectral data. Alternatively, a Raw file can also be used
 2.	A corresponding protein database file in fasta format
 - Process
-1.	Use ProteoWizard MSConvert for converting raw file into mzML file. 
-a.	Make sure you have selected the peak picking option for obtaining the centroided data. 
-b.	The process is described as File format conversion @ http://proteomics.informatics.iupui.edu/software/toppic/tutorial.html 
+1.	Use ProteoWizard MSConvert to convert raw file into mzML file. 
+  1.	Make sure you have selected the peak picking option for obtaining the centroided data. 
+  2.	The process is described as File format conversion @ http://proteomics.informatics.iupui.edu/software/toppic/tutorial.html 
 2.	Use TopFD to deconvolute mzML/mzXML file (branch: for_EnvCNN)
-a.	The process will generate feature files, msalign files and a list of env files. 
+  1.	The process will generate feature files, msalign files and a list of env files. 
 3.	Use TopPIC to perform proteoforms search. It will utilize, protein DB (fasta) file, msalign files and feature files. Make sure you save temporary files.  
 ```./toppic -k -p 0 -d -t FDR -v 1E-10 -T FDR -V 1E-10 protein_db.fasta spectrum.msalign```
 
