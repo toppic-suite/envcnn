@@ -1,4 +1,3 @@
-# Step-By-Step Guide for training the model
 ## Data Pre-Processing ##
 #### Required Files ####
 1.	An mzML/mzXML file containing top-down spectral data. Alternatively, a Raw file can also be used.
@@ -25,7 +24,7 @@
 ```envcnn/src/EnvCNN/linux_batch_scripts/rename_xml_files.sh```
 2.	Rename the Envelope (*.env) files obtained using TopFD. The files are renamed to “sp_spectrumID.env”.  
 ```envcnn/src/EnvCNN/linux_batch_scripts/rename_env_files.sh```
-    1.  Make a new directory called *data*.
+    1.  Make a new directory named *data*.
     2.  Copy the renamed files (both “sp_spectrumID.xml” and “sp_spectrumID.env” data files) into the *data* directory. 
     2.  Switch to the *data* directory for the onward analysis.
 3.	Generate the annotated spectra files.  
@@ -47,23 +46,47 @@
     2.  Using the Training data in *TrainData* directory, create an HDF5 file.
     3.  The HDF5 file contains three partitions for training, validation, and test data.
 
-## Train Model
-1.	Train the model using the HDF5 file. It will generate training plots (loss and accuracy) and will save the trained model in the form of h5 file. Here you have multiple options to train the model. <br/>
-i.	You can train model using CPU and GPUs <br/>
-```/EnvelopeCNN/src/EnvCNN/Exec/train_model_hdf5.py dataset.hdf5```<br/>
-ii.	You can train model using multi-GPUs <br/>
+## Train Model ##
+1.  To train the model using a GPU/CPU.  
+```/envcnn/src/EnvCNN/Exec/train_model_hdf5.py dataset.hdf5```
+2.  To train the model using multiple GPUs.  
+```/envcnn/src/EnvCNN/Exec/train_model_hdf5_multiGPU.py dataset.hdf5```
+    1.	The script uses HDF5 file for training the model.
+    2.  The script will generate a directory named *output*.
+    3.  It will save the trained model to the *output* directory in *model.h5* file.
+    3.  It will also generate the training plots (loss and accuracy).
 
-## Test Model
-1.	Using the saved model, test the model performance. Reports test accuracy and loss, ROC curve, label distribution, and b/y ions label distribution and accuracies<br/>
-```/EnvelopeCNN/src/EnvCNN/Exec/test_model.py dataset.hdf5 output/```<br/>
-2.	Add prediction score in the env files and generate a new list of envelopes with the predicted and TopFD score. Data directory contains feature files. <br/>
-```/EnvelopeCNN/src/EnvCNN/Exec/add_prediction_score.py Data/ output/```<br/>
-3.	Generate the Rank Plot using the newly generated envelope files. It will also save the values in Console.txt<br/>
-```/EnvelopeCNN/src/EnvCNN/Exec/draw_rank_plot.py ./output/output_envs/ > Console.txt```<br/>
+## Test Model ##
+1.	Test the model performance.  
+```/envcnn/src/EnvCNN/Exec/test_model.py dataset.hdf5 output/```
+    1.  The script uses the trained model *output/model.h5* and the test (*.hdf5) file for testing the model.
+    2.  It will report the test data accuracy, loss, ROC curve, label distribution, and performance on b- and y-ions.
+2.	Generate prediction score.  
+```/envcnn/src/EnvCNN/Exec/add_prediction_score.py data/ output/```
+    1.  The script uses the “feature_spectrumID.env” files and the trained model *output/model.h5*.
+    2.  The script will generate a new directory named *output_envelopes*.
+    3.  It will add *predicted_spectrumID.env* files with prediction score in the *output_envelopes* directory.
 
-## Evaluate the model performance
-1.	Using the model_convert.py provided in Frugally-deep library convert your model to json file
-2.	Using the json file, run the modified TopFD version. This will report the new msalign files, feature files and env files.
-3.	Use the newly generated files and protein database, perform the proteoforms identification on TopPIC. 
-4.	Using the newly generated prsms and envs, generate the annotated files as described earlier
-5.	Generate the Rank plot using the newly generated annotated files. 
+## Comaprison of EnvCNN prediction score and MS-Deconv score ##
+1.	Generate the Rank plot.  
+```/envcnn/src/EnvCNN/Exec/generate_rank_plot.py ./output/output_envelopes/ > roc.txt```
+    1.  The script uses the *predicted_spectrumID.env* files.
+    2.  It will generate the *ROC.png* file comparing the performance of EnvCNN and MS-Deconv and will output the AUC values in *roc.txt*.
+2. Generate the ROC plot.  
+```/envcnn/src/EnvCNN/Exec/generate_roc_plot.py ./output/output_envelopes/```
+    1.  The script uses the *predicted_spectrumID.env* files.
+    2.  It will generate the *rank.png* file comparing the performance of EnvCNN and MS-Deconv.
+3. Generate the rank-sum.  
+```/envcnn/src/EnvCNN/Exec/compute_ranksum.py ./output/output_envelopes/ > ranksum.txt```
+    1.  The script uses the *predicted_spectrumID.env* files.
+    2.  It will output the rank-sum values of EnvCNN and MS-Deconv.
+
+## Using trained model integrated in TopFD ##
+1.  You can download/clone the modified version of the TopFD from https://github.com/toppic-suite/toppic-suite using GitHub branch *"with_EnvCNN"*.
+2. Accomodate your own trained model.
+    1.	Use the *model_convert.py* provided in Frugally-deep library to convert your model to json file.
+        1. The source code of frugally deep is available at https://github.com/Dobiasd/frugally-deep 
+    2.	Copy the json file to the *toppic_resources* directory in the toppic repository and run the modified TopFD version.
+        1. The source code of frugally deep is available at https://github.com/toppic-suite/toppic-suite
+        2. A pre-trained version of the model is already available in the *toppic_resources* directory
+    3.	Using the newly generated files and protein database, perform the proteoforms identification on TopPIC. 
