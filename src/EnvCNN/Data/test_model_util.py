@@ -38,7 +38,7 @@ def load_model(model_directory):
   print("Loaded model from disk")
   return loaded_model
 
-def generate_roc_curve(output_directory, predicted_label_probabilities, topfd_score, assigned_label, file_name="ROC_Curve_.png"):
+def generate_roc_curve(output_directory, predicted_label_probabilities, topfd_score, assigned_label, file_name="ROC.png"):
   auc = roc_auc_score(assigned_label, predicted_label_probabilities)
   topfd_auc = roc_auc_score(assigned_label, topfd_score)
   print('EnvCNN_AUC: %.4f' % auc)
