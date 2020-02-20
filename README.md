@@ -81,7 +81,7 @@
     1.  The script uses the *predicted_spectrumID.env* files.
     2.  It will output the rank-sum values of EnvCNN and MS-Deconv.
 
-## Using trained model integrated in TopFD ##
+## Deconvoluting MS/MS spectra using EnvCNN ##
 1.  You can download/clone the modified version of the TopFD from https://github.com/toppic-suite/toppic-suite using GitHub branch *"with_EnvCNN"*.
 2. Accomodate your own trained model.
     1.	Use the *model_convert.py* provided in Frugally-deep library to convert your model to json file.
