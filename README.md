@@ -82,11 +82,18 @@
     2.  It will output the rank-sum values of EnvCNN and MS-Deconv.
 
 ## Deconvoluting MS/MS spectra using EnvCNN ##
-1.  You can download/clone the modified version of the TopFD from https://github.com/toppic-suite/toppic-suite using GitHub branch *"with_EnvCNN"*.
+1.  Download TopFD utilizing EnvCNN model for scoring isotopmer envelopes.
+    1.  You can downlaod the binaries using: https://github.com/toppic-suite/envcnn/releases/download/v1.0-beta/topfd-with-EnvCNN-linux-1.0-beta.zip 
+    2.  You can download/clone the modified version of the TopFD from https://github.com/toppic-suite/toppic-suite using GitHub branch *"with_EnvCNN"*.
 2. Accomodate your own trained model.
     1.	Use the *model_convert.py* provided in Frugally-deep library to convert your model to json file.
         1. The source code of frugally deep is available at https://github.com/Dobiasd/frugally-deep 
-    2.	Copy the json file to the *toppic_resources* directory in the toppic repository and run the modified TopFD version.
-        1. The source code of frugally deep is available at https://github.com/toppic-suite/toppic-suite
-        2. A pre-trained version of the model is already available in the *toppic_resources* directory
-    3.	Using the newly generated files and protein database, perform the proteoforms identification on TopPIC. 
+    2.	Copy the json file to the *toppic_resources* directory in the toppic repository and run the modified TopFD version available at aforementioned links.
+        1. A pre-trained version of the model is already available in the *toppic_resources* directory
+        
+## Training Data ##
+1. Ovarian tumor data (used for training the model) has been made available at https://iu.box.com/s/xiantaww5n23f5u5eb7yusf3lc7hulcp
+    1. There is a directory for each replicate containing corresponding envelope, prsm, annotated, feature and hdf5 files. 
+    2. A file named *"dataset.hdf5"* contains training, validation and test data generated using all replicates.
+        1.  First nine replicates have been used for generating training and validation data.
+        2.  Last replicate (Replicate_10) has been used for generating test data.
