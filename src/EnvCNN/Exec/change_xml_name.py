@@ -22,5 +22,5 @@ from shutil import copyfile
 tree = ET.parse(sys.argv[1])
 spec_id = tree.find('./ms/ms_header/ids')
 
-file_name = os.path.basename(os.getcwd()) + "_sp_" + spec_id.text + ".xml"
+file_name = "sp_" + spec_id.text + ".xml"
 copyfile(sys.argv[1], file_name)

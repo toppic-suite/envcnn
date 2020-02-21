@@ -36,6 +36,6 @@ for i in range(len(all_lines)):
     spec_id = int(mono[1][0:len(mono[1])-1])
     break
 
-#file_name = "sp_" + str(spec_id) + ".env"
-file_name = os.path.basename(os.getcwd()) + "_sp_" + str(spec_id) + ".env"
+file_name = "sp_" + str(spec_id) + ".env"
+#file_name = os.path.basename(os.getcwd()) + "_sp_" + str(spec_id) + ".env"
 copyfile(sys.argv[1], file_name)

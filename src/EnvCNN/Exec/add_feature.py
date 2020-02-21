@@ -22,7 +22,7 @@ from EnvCNN.Data.feature_writer import write as feature_writer
 
 tolerance = 0.02
 anno_file = sys.argv[1]
-output_file  = os.path.basename(os.getcwd()) + "_feature" + anno_file[anno_file.rindex("_"):anno_file.rindex(".")] + ".env"
+output_file  = "feature" + anno_file[anno_file.rindex("_"):anno_file.rindex(".")] + ".env"
 env_list = read_anno_file(anno_file)
 for idx in range(len(env_list)):
   env = env_list[idx]

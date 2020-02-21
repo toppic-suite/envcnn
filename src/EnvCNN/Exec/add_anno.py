@@ -27,7 +27,7 @@ prsm_file  = sys.argv[2]
 start = prsm_file.index('_') + 1
 end = prsm_file.index( '.', start )
 index = prsm_file[start:end]
-output_file  = os.path.basename(os.getcwd()) + "_annotated_" + prsm_file[start:end] + ".env"
+output_file  = "annotated_" + prsm_file[start:end] + ".env"
 
 env_list = read_env_file(env_file)
 prsm = read_prsm_file(prsm_file)

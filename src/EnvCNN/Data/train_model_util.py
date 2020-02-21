@@ -100,13 +100,13 @@ def shuffle_data_test(labels_dict):
   return list(data_files), list(labels)
 
 def get_param_dict(data_dir):
-  param_file = os.path.join(data_dir, "replicate_1_parameters.csv")
+  param_file = os.path.join(data_dir, "parameters.csv")
   params_pd = pandas.read_csv(param_file, delimiter=',', header=None)
   params = dict([(i,[a,b,c]) for i, a,b,c in zip(params_pd[0], params_pd[1],params_pd[2],params_pd[3])])
   return params
 
 def get_label_dict(data_dir):
-  label_file = os.path.join(data_dir, "replicate_1_label.csv")
+  label_file = os.path.join(data_dir, "label.csv")
   label_pd = pandas.read_csv(label_file, delimiter=',', header=None)
   labels = dict([(i,a) for i, a in zip(label_pd[0], label_pd[1])])
   return labels

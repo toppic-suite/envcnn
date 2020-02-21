@@ -95,7 +95,7 @@ def get_anno_dist(model_dir, test_data, test_labels, test_params):
     anno_history.append(history)
     predictions = model.predict(x_train, verbose=0)
     plot_prediction_dist(predictions, anno[1], anno[2])
-    print("Loss: ", history[0], "Accuracy: ", history[1])
+    print("Loss:", history[0], "Accuracy:", history[1])
 
 def get_label_distribution(output_dir, x_train, y_train, file_name="Labels_Distribution.png"):
   condition = y_train == 1
@@ -107,10 +107,10 @@ def get_label_distribution(output_dir, x_train, y_train, file_name="Labels_Distr
   model = keras.models.load_model(os.path.join(output_dir, "model.h5"))
   positive_history = model.evaluate(positive_data, positive_labels, verbose=0)
   print("** Positive Envelopes **")
-  print("Loss: ", positive_history[0], "Accuracy: ", positive_history[1])
+  print("Loss:", positive_history[0], "Accuracy:", positive_history[1])
   negative_history = model.evaluate(negative_data, negative_labels, verbose=0)
   print("** Negative Envelopes **")
-  print("Loss: ", negative_history[0], "Accuracy: ", negative_history[1])
+  print("Loss:", negative_history[0], "Accuracy:", negative_history[1])
   
   ## Label Distribution
   positive_label_probabilities = model.predict(positive_data)
