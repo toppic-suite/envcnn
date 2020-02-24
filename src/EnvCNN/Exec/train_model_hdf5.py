@@ -25,7 +25,7 @@ import time
 
 t0 = time.time()
 data_dir = sys.argv[1]
-batch_size = 256
+batch_size = 128
 output_dir = train_model_util.create_output_directory("output")
 
 hdf5_file = h5py.File(data_dir, "r")
