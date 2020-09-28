@@ -90,8 +90,9 @@ Note: Please be sure to add ```/envcnn/src``` into *$PYTHONPATH* before running 
     2.  You can download/clone the modified version of the TopFD from https://github.com/toppic-suite/toppic-suite using GitHub branch *"with_EnvCNN"*.
 2. Accomodate your own trained model.
     1.	Use the *model_convert.py* provided in Frugally-deep library to convert your model to json file.
-        1. The source code of frugally deep is available at https://github.com/Dobiasd/frugally-deep 
-    2.	Copy the json file to the *toppic_resources* directory in the toppic repository and run the modified TopFD version available at aforementioned links.
+        1. You can convert the model using ```python3 envcnn/src/keras_export_frugally_deep/convert_model.py keras_model.h5 fdeep_model.json```
+        2. The source code of frugally deep is available at https://github.com/Dobiasd/frugally-deep 
+    2.	Copy the json file to the *toppic_resources* directory in the toppic repository and run the TopFD for spectral deconvolution.
         1. A pre-trained version of the model is already available in the *toppic_resources* directory
         
 ## Training Data ##
