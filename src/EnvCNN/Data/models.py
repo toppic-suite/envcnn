@@ -25,7 +25,7 @@ def _block(in_layer, filters, n_convs):
     vgg_block = conv3(filters=filters)(vgg_block)
   return vgg_block
 
-def vgg(in_shape=(300, 6)):
+def vgg(in_shape=(300, 5)):
   in_layer = keras.layers.Input(in_shape)
   block1 = _block(in_layer, 64, 2)
   pool1 = keras.layers.MaxPool1D()(block1)
@@ -44,4 +44,17 @@ def vgg(in_shape=(300, 6)):
   model = keras.models.Model(in_layer, preds)
   model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
   return model
-  
+
+def vgg_small(in_shape=(300, 5)):
+  in_layer = keras.layers.Input(in_shape)
+  block1 = _block(in_layer, 64, 2)
+  pool1 = keras.layers.MaxPool1D()(block1)
+  block2 = _block(pool1, 128, 2)
+  pool2 = keras.layers.MaxPool1D()(block2)
+  flattened = keras.layers.GlobalAvgPool1D()(pool2)
+  dense1 = keras.layers.Dense(2048, activation='relu')(flattened)
+  dense2 = keras.layers.Dense(1024, activation='relu')(dense1)
+  preds = keras.layers.Dense(1, activation='sigmoid')(dense2)
+  model = keras.models.Model(in_layer, preds)
+  model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
+  return model 

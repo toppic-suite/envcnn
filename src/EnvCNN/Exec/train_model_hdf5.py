@@ -49,7 +49,7 @@ checkpoint = keras.callbacks.ModelCheckpoint(os.path.join(output_dir, "model.h5"
 history = model.fit_generator(train_gen, steps_per_epoch=math.ceil(num_train_samples / batch_size), validation_data=val_gen, validation_steps=math.ceil(num_val_samples / batch_size), epochs=200, verbose=2, class_weight=class_weights, callbacks=[checkpoint, early_stopping])
 hdf5_file.close()
 
-train_model_util.save_model(model, output_dir)
+# train_model_util.save_model(model, output_dir)
 train_model_util.print_training_history(history, output_dir)
 train_model_util.plot_training_graphs(history, output_dir)
 
