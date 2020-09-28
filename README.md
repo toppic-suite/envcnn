@@ -1,3 +1,6 @@
+# EnvCNN Manual #
+Note: Please be sure to add ```/envcnn/src``` into *$PYTHONPATH* before running the code.
+
 ## Data Pre-Processing ##
 #### Required Files ####
 1.	An mzML/mzXML file containing top-down spectral data. Alternatively, a Raw file can also be used.
