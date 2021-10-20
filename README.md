@@ -96,7 +96,7 @@ Note: Please be sure to add ```/envcnn/src``` into *$PYTHONPATH* before running 
         1. A pre-trained version of the model is already available in the *toppic_resources* directory
         
 ## Training Data ##
-1. Ovarian tumor data (used for training the model) has been made available at https://iu.box.com/s/xiantaww5n23f5u5eb7yusf3lc7hulcp
+1. Ovarian tumor data (used for training the model) has been made available at https://bit.ly/3pkGB03
     1. There is a directory for each replicate containing corresponding envelope, prsm, annotated, feature and hdf5 files. 
     2. A file named *"dataset.hdf5"* contains training, validation and test data generated using all replicates.
         1.  First nine replicates have been used for generating training and validation data.
