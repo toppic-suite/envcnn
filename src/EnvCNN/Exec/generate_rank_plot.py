@@ -25,12 +25,15 @@ anno_dir = sys.argv[1]
 files = os.listdir(anno_dir)
 
 env_list_2d_topfd = []
-env_list_2d_pred_score = []
 for anno_file in files:
   env_list = read_anno_file(os.path.join(anno_dir, anno_file))
   ## Rank by TopFD score
   env_list.sort(key=lambda x: x.header.topfd_score, reverse=True)
   env_list_2d_topfd.append(env_list)
+  
+env_list_2d_pred_score = []
+for anno_file in files:
+  env_list = read_anno_file(os.path.join(anno_dir, anno_file))
   ## Rank by EnvCNN prediction score  
   env_list.sort(key=lambda x: x.header.pred_score, reverse=True)
   env_list_2d_pred_score.append(env_list)
