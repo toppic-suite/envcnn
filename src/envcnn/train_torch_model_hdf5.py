@@ -17,15 +17,136 @@
 import sys
 import os
 import torch
+import pytorchtools 
 import math
 import h5py
+import time
 import data.torch_models as models
 import data.train_model_util as train_model_util
-import time
+from pytorchtools import EarlyStopping
+
+# Convert train and test sets to torch.Tensors and load them to
+# DataLoader.
+def data_loader(train_x, test_x, train_y, test_y, batch_size=512):
+  train_x=torch.Tensor(train_x)
+  train_y=torch.Tensor(train_y)
+
+  # Create DataLoader for training data
+  train_dataset = torch.utils.data.TensorDataset(train_x, train_y)
+  train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size)
+
+  test_x=torch.Tensor(test_x)
+  test_y=torch.Tensor(test_y)
+
+  # Create DataLoader for testidation data
+  test_dataset = torch.utils.data.TensorDataset(test_x, test_y)
+  test_dataloader = torch.utils.data.DataLoader(test_dataset, batch_size=batch_size)
+
+  return train_dataloader, test_dataloader
+
+# Train the CNN model.
+def train(model, optimizer, loss_fn, x_train, x_test, y_train, y_test, batch_size, epochs):
+  # Tracking best validation accuracy
+  logs={}
+  logs['train_loss']=[]
+  logs['test_loss']=[]
+  # Set best loss to a large number
+  best_loss = 100000
+
+  train_dataloader, test_dataloader = data_loader(x_train, x_test, y_train, y_test, batch_size)
+  early_stopping = EarlyStopping(patience=30, verbose=True, path = "early_stop_checkpoint.pt")
+
+  # Start training loop
+  print("Start training...\n")
+  print(f"{'Epoch':^7} | {'Train Loss':^12} |  {'Test Loss':^10} | {'Elapsed':^9}")
+  print("-"*60)
+  for epoch_i in range(epochs):
+    # Tracking time and loss
+    t0_epoch = time.time()
+    ##tracking the loss for training and validation
+    total_loss = 0
+    # =======================================
+    #               Training
+    # =======================================
+    train_output=[]
+    # Put the model into the training mode
+    model.train()
+
+    for step, batch in enumerate(train_dataloader):
+      # Load batch to GPU
+      b_input_ids, b_labels = tuple(t.to(device) for t in batch)
+      b_labels=b_labels.reshape(b_labels.shape[0],1)
+      # Zero out any previously calculated gradients
+      optimizer.zero_grad()
+
+      # Perform a forward pass. This will return logits
+      logits = model(b_input_ids)
+
+      if torch.cuda.is_available():
+        logits_numpy=logits.detach().cpu().numpy()
+      else:
+        logits_numpy=logits.detach().numpy()
+      train_output.append(logits_numpy)
+      # Compute loss and accumulate the loss values
+      loss = loss_fn(logits, b_labels)
+      print("logits", logits, " b_labels", b_labels)
+      print("loss", loss.item())
+      total_loss += loss.item()
+
+      # Perform a backward pass to calculate gradients
+      loss.backward()
+
+      # Update parameters
+      optimizer.step()
+
+      # Calculate the average loss over the entire training data
+      avg_train_loss = total_loss / len(train_dataloader)
+      logs['train_loss'].append(avg_train_loss)
+
+      # Print performance over the entire training data
+      time_elapsed = time.time() - t0_epoch
+      test_loss = 0
+      print(f"{epoch_i + 1:^7} | {avg_train_loss:^12.6f} |  {test_loss:^10.6f} | {time_elapsed:^9.2f}")
+        
+        
+      """  
+        # =======================================
+        #               Evaluation
+        # =======================================
+        if test_dataloader is not None:
+            # After the completion of each training epoch, measure the model's
+            # performance on our testidation set.
+            test_loss, test_output= evaluate(model, loss_fn,test_dataloader)
+            logs['test_loss'].append(test_loss)
+            # Track the best accuracy
+            if test_loss < best_loss:
+                best_loss = test_loss
+
+            
+            early_stopping(test_loss, model)
+        
+            if early_stopping.early_stop:
+                print("Early stopping")
+                break
+            
+    PlotLosses(logs,output,fold)
+    
+    print("\n")
+    print(f"Training complete! Best test loss: {best_loss:.4f}.")
+    """
+
+
+if torch.cuda.is_available():       
+    device = torch.device("cpu")
+    print(f'There are {torch.cuda.device_count()} GPU(s) available.')
+    print('Device name:', torch.cuda.get_device_name(0))
+
+else:
+    print('No GPU available, using the CPU instead.')
+    device = torch.device("cpu")
 
 t0 = time.time()
 data_dir = sys.argv[1]
-batch_size = 128
 output_dir = train_model_util.create_output_directory("output")
 
 hdf5_file = h5py.File(data_dir, "r")
@@ -33,16 +154,39 @@ num_train_samples = hdf5_file["train_data"].shape[0]
 num_val_samples = hdf5_file["val_data"].shape[0]
 class_weights = train_model_util.get_class_weight(hdf5_file["train_labels"])
 
-print("train_shape: ", num_train_samples)
-print("val_shape: ", num_val_samples)
-print(class_weights)
+print("train shape: ", num_train_samples)
+print("validation shape: ", num_val_samples)
+print("class weight:", class_weights)
+
+model=models.EnvCnn() 
+print(model)
+model.to(device)
+
+optimizer = torch.optim.Adam(model.parameters(),lr = 1e-05)
+loss_fn = torch.nn.CrossEntropyLoss()
+#loss_fn = torch.nn.MSELoss()
+batch_size = 128
+epochs = 200
+
+X = hdf5_file["train_data"]
+x_train = X[:, ...][:,:,0:5]
+y_train = hdf5_file["train_labels"]
+
+x_train = torch.randn(256, 5, 300)
+y_train = torch.randint(0,2, (256,)).float()
+
+X = hdf5_file["val_data"]
+x_test = X[:, ...][:,:,0:5]
+y_test = hdf5_file["val_labels"]
+
+train(model, optimizer, loss_fn, x_train, x_test, y_train, y_test, batch_size, epochs)
 
 
+"""
 train_gen = train_model_util.Hdf5_generator(hdf5_file["train_data"], hdf5_file["train_labels"], batch_size, num_train_samples)
 val_gen = train_model_util.Hdf5_generator(hdf5_file["val_data"], hdf5_file["val_labels"], batch_size, num_val_samples)
 
 model = models.vgg()
-"""
 model.summary()
 model.compile(loss="binary_crossentropy", metrics=['accuracy'], optimizer=keras.optimizers.Adam(lr=1e-05))
 early_stopping = keras.callbacks.EarlyStopping(monitor='val_loss', min_delta=0, patience=30, verbose=1, mode='min')
@@ -59,4 +203,4 @@ train_model_util.plot_training_graphs(history, output_dir)
 
 t1 = time.time()
 total = t1-t0
-print(total)
+print("Running time:", total)

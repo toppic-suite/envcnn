@@ -16,7 +16,7 @@ import torch.nn as nn
 
 class EnvCnn(nn.Module):
     def __init__(self):  
-        super(NeuralNetwork, self).__init__()
+        super(EnvCnn, self).__init__()
         input_dim = 5
         self.conv1=nn.Conv1d(in_channels = input_dim, #input height
                 out_channels = 64, #n_filter
@@ -30,25 +30,27 @@ class EnvCnn(nn.Module):
                 stride=1,  #filter step
                 padding_mode="replicate")
         """
+        self.relu = nn.ReLU()
         self.pool= nn.MaxPool1d(kernel_size=3,stride=1)
+        self.flatten = nn.Flatten()
 
         # fully connected layer
         self.fc= nn.Sequential(
-                nn.Linear(300 * 64, 2048),
+                nn.Linear(296 * 64, 2048),
                 nn.ReLU(),
                 nn.Linear(2048,1024),
                 nn.ReLU(),
                 nn.Linear(1024,1),
-                nn.Sigmoid()
+                #nn.Sigmoid()
                 )
         return
 
 
     def forward(self, x):
-        x=self.conv1(x))
-        x=nn.ReLU(x)
+        x=self.conv1(x)
+        x=self.relu(x)
         x=self.pool(x)
-        x=nn.Flatten(x)
+        x=self.flatten(x)
 
         for layer in self.fc:
             x=layer(x)
