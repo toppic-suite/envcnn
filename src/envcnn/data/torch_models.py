@@ -40,8 +40,7 @@ class EnvCnn(nn.Module):
                 nn.ReLU(),
                 nn.Linear(2048,1024),
                 nn.ReLU(),
-                nn.Linear(1024,1),
-                #nn.Sigmoid()
+                nn.Linear(1024,2),
                 )
         return
 

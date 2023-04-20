@@ -17,7 +17,7 @@
 import sys
 import os
 import torch
-import pytorchtools 
+import numpy
 import math
 import h5py
 import time
@@ -73,24 +73,22 @@ def train(model, optimizer, loss_fn, x_train, x_test, y_train, y_test, batch_siz
     model.train()
 
     for step, batch in enumerate(train_dataloader):
-      # Load batch to GPU
+      # Load batch to the device 
       b_input_ids, b_labels = tuple(t.to(device) for t in batch)
-      b_labels=b_labels.reshape(b_labels.shape[0],1)
       # Zero out any previously calculated gradients
       optimizer.zero_grad()
 
       # Perform a forward pass. This will return logits
-      logits = model(b_input_ids)
-
+      results = model(b_input_ids)
       if torch.cuda.is_available():
-        logits_numpy=logits.detach().cpu().numpy()
+        results_numpy=results.detach().cpu().numpy()
       else:
-        logits_numpy=logits.detach().numpy()
-      train_output.append(logits_numpy)
+        results_numpy=results.detach().numpy()
+      train_output.append(results_numpy)
+       
       # Compute loss and accumulate the loss values
-      loss = loss_fn(logits, b_labels)
-      print("logits", logits, " b_labels", b_labels)
-      print("loss", loss.item())
+      loss = loss_fn(results, b_labels)
+      #print("loss", loss.item())
       total_loss += loss.item()
 
       # Perform a backward pass to calculate gradients
@@ -98,18 +96,18 @@ def train(model, optimizer, loss_fn, x_train, x_test, y_train, y_test, batch_siz
 
       # Update parameters
       optimizer.step()
+    
+    # Calculate the average loss over the entire training data
+    avg_train_loss = total_loss / len(train_dataloader)
+    logs['train_loss'].append(avg_train_loss)
 
-      # Calculate the average loss over the entire training data
-      avg_train_loss = total_loss / len(train_dataloader)
-      logs['train_loss'].append(avg_train_loss)
-
-      # Print performance over the entire training data
-      time_elapsed = time.time() - t0_epoch
-      test_loss = 0
-      print(f"{epoch_i + 1:^7} | {avg_train_loss:^12.6f} |  {test_loss:^10.6f} | {time_elapsed:^9.2f}")
+    # Print performance over the entire training data
+    time_elapsed = time.time() - t0_epoch
+    test_loss = 0
+    print(f"{epoch_i + 1:^7} | {avg_train_loss:^12.6f} |  {test_loss:^10.6f} | {time_elapsed:^9.2f}")
         
         
-      """  
+    """  
         # =======================================
         #               Evaluation
         # =======================================
@@ -164,22 +162,38 @@ model.to(device)
 
 optimizer = torch.optim.Adam(model.parameters(),lr = 1e-05)
 loss_fn = torch.nn.CrossEntropyLoss()
-#loss_fn = torch.nn.MSELoss()
 batch_size = 128
 epochs = 200
 
 X = hdf5_file["train_data"]
-x_train = X[:, ...][:,:,0:5]
-y_train = hdf5_file["train_labels"]
+x_train = X[:256,:,0:5]
+print("x_train shape", x_train.shape)
+x_train = x_train.astype(numpy.float32)
+torch_x_train = torch.from_numpy(x_train)
+# transpose the 2nd and 3rd dimension
+torch_x_train = torch_x_train.transpose(1,2)
 
-x_train = torch.randn(256, 5, 300)
-y_train = torch.randint(0,2, (256,)).float()
+y_train = hdf5_file["train_labels"][:256]
+y_train = y_train.astype(numpy.int64)
+torch_y_train = torch.from_numpy(y_train)
 
 X = hdf5_file["val_data"]
-x_test = X[:, ...][:,:,0:5]
-y_test = hdf5_file["val_labels"]
+x_vali = X[:256,:,0:5]
+print("x_vali shape", x_vali.shape)
+x_vali = x_vali.astype(numpy.float32)
+torch_x_vali = torch.from_numpy(x_vali)
+torch_x_vali = torch_x_vali.transpose(1,2)
 
-train(model, optimizer, loss_fn, x_train, x_test, y_train, y_test, batch_size, epochs)
+y_vali = hdf5_file["val_labels"][:256]
+y_vali = y_vali.astype(numpy.int64)
+torch_y_vali = torch.from_numpy(y_vali)
+
+train(model, optimizer, loss_fn, torch_x_train, torch_x_vali, torch_y_train,
+        torch_y_vali, batch_size, epochs)
+
+t1 = time.time()
+total = t1-t0
+print("Running time:", total)
 
 
 """
@@ -201,6 +215,3 @@ train_model_util.print_training_history(history, output_dir)
 train_model_util.plot_training_graphs(history, output_dir)
 """
 
-t1 = time.time()
-total = t1-t0
-print("Running time:", total)
