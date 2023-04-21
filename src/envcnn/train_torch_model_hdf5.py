@@ -163,6 +163,9 @@ def train(model, optimizer, loss_fn, x_train, x_test, y_train, y_test, batch_siz
   print("Start training...\n")
   print(f"{'Epoch':^7} | {'Train Loss':^16} |  {'Validation Loss':^16} | {'Valid Accuracy':^16} | {'Elapsed':^9}")
   print("-"*60)
+  if vali_dataloader is not None:
+    avg_vali_loss, avg_vali_accuracy, vali_output= validate_epoch(model, loss_fn, vali_dataloader)
+    print(f"{'Init':^7} | {'':^16} |  {avg_vali_loss:^16.6f} | {avg_vali_accuracy:^16.6f} | {'':^9}")
   for epoch_i in range(epochs):
     # Tracking time 
     t0_epoch = time.time()
