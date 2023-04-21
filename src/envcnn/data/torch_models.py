@@ -22,21 +22,33 @@ class EnvCnn(nn.Module):
                 out_channels = 64, #n_filter
                 kernel_size = 3, #filter size
                 stride=1,  #filter step
-                padding_mode="replicate")
-        """
+                padding=1)
+
         self.conv2=nn.Conv1d(in_channels = 64, #input height
                 out_channels = 64, #n_filter
                 kernel_size = 3, #filter size
                 stride=1,  #filter step
-                padding_mode="replicate")
-        """
+                padding=1)
+
+        self.conv3=nn.Conv1d(in_channels = 64, #input height
+                out_channels = 128, #n_filter
+                kernel_size = 3, #filter size
+                stride=1,  #filter step
+                padding=1)
+
+        self.conv4=nn.Conv1d(in_channels = 128, #input height
+                out_channels = 128, #n_filter
+                kernel_size = 3, #filter size
+                stride=1,  #filter step
+                padding=1)
+
         self.relu = nn.ReLU()
-        self.pool= nn.MaxPool1d(kernel_size=3,stride=1)
+        self.pool= nn.MaxPool1d(kernel_size=3, stride=1, padding=1)
         self.flatten = nn.Flatten()
 
         # fully connected layer
         self.fc= nn.Sequential(
-                nn.Linear(296 * 64, 2048),
+                nn.Linear(300 * 128, 2048),
                 nn.ReLU(),
                 nn.Linear(2048,1024),
                 nn.ReLU(),
@@ -48,7 +60,16 @@ class EnvCnn(nn.Module):
     def forward(self, x):
         x=self.conv1(x)
         x=self.relu(x)
+        x=self.conv2(x)
+        x=self.relu(x)
         x=self.pool(x)
+
+        x=self.conv3(x)
+        x=self.relu(x)
+        x=self.conv4(x)
+        x=self.relu(x)
+        x=self.pool(x)
+
         x=self.flatten(x)
 
         for layer in self.fc:
