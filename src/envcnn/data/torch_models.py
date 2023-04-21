@@ -43,12 +43,12 @@ class EnvCnn(nn.Module):
                 padding=1)
 
         self.relu = nn.ReLU()
-        self.pool= nn.MaxPool1d(kernel_size=3, stride=1, padding=1)
+        self.pool= nn.MaxPool1d(kernel_size=2, stride=2)
         self.flatten = nn.Flatten()
 
         # fully connected layer
         self.fc= nn.Sequential(
-                nn.Linear(300 * 128, 2048),
+                nn.Linear(75 * 128, 2048),
                 nn.ReLU(),
                 nn.Linear(2048,1024),
                 nn.ReLU(),
@@ -63,7 +63,6 @@ class EnvCnn(nn.Module):
         x=self.conv2(x)
         x=self.relu(x)
         x=self.pool(x)
-
         x=self.conv3(x)
         x=self.relu(x)
         x=self.conv4(x)

@@ -50,8 +50,10 @@ def train_epoch(model, loss_fn, train_dataloader):
   train_output=[]
   # Put the model into the training mode
   model.train()
-
+  count = 0
   for batch in train_dataloader:
+    count = count + 1
+    print("train batch", count, " out of ", len(train_dataloader), end = "\r") 
     # Load batch to the device 
     b_input_ids, b_labels = tuple(t.to(device) for t in batch)
     # Zero out any previously calculated gradients
@@ -81,6 +83,19 @@ def train_epoch(model, loss_fn, train_dataloader):
   
   return avg_train_loss, train_output
 
+def comp_accuracy(results, b_labels):
+  #print(results)
+  accuracy = 0
+  for i in range(results.shape[0]):
+    pred = 0
+    if (results[i][1] > results[i][0]):
+      pred = 1
+    if pred == b_labels[i]:
+      accuracy = accuracy + 1
+  #print(b_labels)
+  #print(accuracy)
+  return accuracy/results.shape[0]
+
 def validate_epoch(model, loss_fn, vali_dataloader):
   # Put the model into the evaluation mode. The dropout layers are disabled
   # during the test time.
@@ -88,9 +103,13 @@ def validate_epoch(model, loss_fn, vali_dataloader):
 
   # Tracking variables
   total_loss = 0 
+  total_accuracy = 0
   vali_output= []
 
+  count = 0
   for batch in vali_dataloader:
+    count = count + 1
+    print("validation batch", count, " out of ", len(vali_dataloader), end = "\r") 
     b_input_ids, b_labels = tuple(t.to(device) for t in batch)
 
     # Perform a forward pass. This will return logits
@@ -105,10 +124,14 @@ def validate_epoch(model, loss_fn, vali_dataloader):
     # Compute loss and accumulate the loss values
     loss = loss_fn(results, b_labels)
     total_loss = total_loss + loss.item()
+    
+    accuracy = comp_accuracy(results, b_labels)
+    total_accuracy = total_accuracy + accuracy
 
   # Compute the average accuracy and loss over the validation set.
   avg_vali_loss = total_loss / len(vali_dataloader) 
-  return avg_vali_loss, vali_output
+  avg_vali_accuracy = total_accuracy / len(vali_dataloader) 
+  return avg_vali_loss, avg_vali_accuracy, vali_output
 
 def plot_losses(logs, output):
   pyplot.subplot()  
@@ -138,7 +161,7 @@ def train(model, optimizer, loss_fn, x_train, x_test, y_train, y_test, batch_siz
 
   # Start training loop
   print("Start training...\n")
-  print(f"{'Epoch':^7} | {'Train Loss':^16} |  {'Validation Loss':^16} | {'Elapsed':^9}")
+  print(f"{'Epoch':^7} | {'Train Loss':^16} |  {'Validation Loss':^16} | {'Valid Accuracy':^16} | {'Elapsed':^9}")
   print("-"*60)
   for epoch_i in range(epochs):
     # Tracking time 
@@ -149,7 +172,7 @@ def train(model, optimizer, loss_fn, x_train, x_test, y_train, y_test, batch_siz
       logs['train_loss'].append(avg_train_loss)
     # Evaluation
     if vali_dataloader is not None:
-      avg_vali_loss, vali_output= validate_epoch(model, loss_fn, vali_dataloader)
+      avg_vali_loss, avg_vali_accuracy, vali_output= validate_epoch(model, loss_fn, vali_dataloader)
       logs['validation_loss'].append(avg_vali_loss)
       # Track the best accuracy
       if avg_vali_loss < best_loss:
@@ -157,7 +180,7 @@ def train(model, optimizer, loss_fn, x_train, x_test, y_train, y_test, batch_siz
 
     # Print performance over the entire training data
     time_elapsed = time.time() - t0_epoch
-    print(f"{epoch_i + 1:^7} | {avg_train_loss:^16.6f} |  {avg_vali_loss:^16.6f} | {time_elapsed:^9.2f}")
+    print(f"{epoch_i + 1:^7} | {avg_train_loss:^16.6f} |  {avg_vali_loss:^16.6f} | {avg_vali_accuracy:^16.6f} | {time_elapsed:^9.2f}")
 
     early_stopping(avg_vali_loss, model)
         
@@ -173,7 +196,7 @@ def train(model, optimizer, loss_fn, x_train, x_test, y_train, y_test, batch_siz
         
 # Main
 if torch.cuda.is_available():       
-    device = torch.device("cpu")
+    device = torch.device("cuda")
     print(f'There are {torch.cuda.device_count()} GPU(s) available.')
     print('Device name:', torch.cuda.get_device_name(0))
 
