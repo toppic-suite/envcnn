@@ -23,7 +23,7 @@ import torch
 import util.train_model_util as train_model_util
 import util.train_torch_model_hdf5 as train_model
 
-import torch_model.torch_two_block_vgg_five_feature as test_model
+import torch_model.torch_two_block_vgg_four_feature as test_model
 
 # Main
 t0 = time.time()
@@ -82,7 +82,7 @@ y_vali = hdf5_file["val_labels"][:]
 y_vali = y_vali.astype(numpy.int64)
 torch_y_vali = torch.from_numpy(y_vali)
 
-output_model_file = "two_block_vgg_five_feature.model"
+output_model_file = "two_block_vgg_four_feature.model"
 
 train_model.train(device, model, optimizer, loss_fn, torch_x_train, torch_x_vali, torch_y_train,
                   torch_y_vali, batch_size, epochs, output_model_file)

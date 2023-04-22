@@ -49,7 +49,7 @@ def train_epoch(device, model, optimizer, loss_fn, train_dataloader):
   count = 0
   for batch in train_dataloader:
     count = count + 1
-    print("train batch", count, " out of ", len(train_dataloader), end = "\r") 
+    #print("train batch", count, " out of ", len(train_dataloader), end = "\r") 
     # Load batch to the device 
     b_input_ids, b_labels = tuple(t.to(device) for t in batch)
     # Zero out any previously calculated gradients
@@ -105,7 +105,7 @@ def validate_epoch(device, model, loss_fn, vali_dataloader):
   count = 0
   for batch in vali_dataloader:
     count = count + 1
-    print("validation batch", count, " out of ", len(vali_dataloader), end = "\r") 
+    #print("validation batch", count, " out of ", len(vali_dataloader), end = "\r") 
     b_input_ids, b_labels = tuple(t.to(device) for t in batch)
 
     # Perform a forward pass. This will return logits
