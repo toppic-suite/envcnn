@@ -26,33 +26,36 @@ import util.train_torch_model_hdf5 as train_model
 import torch_model.torch_two_block_vgg_five_feature as test_model
 
 # Main
-if torch.cuda.is_available():       
-    device = torch.device("cuda")
-    print(f'There are {torch.cuda.device_count()} GPU(s) available.')
-    print('Device name:', torch.cuda.get_device_name(0))
-
-else:
-    print('No GPU available, using the CPU instead.')
-    device = torch.device("cpu")
-
 t0 = time.time()
 data_dir = sys.argv[1]
 
 hdf5_file = h5py.File(data_dir, "r")
 num_train_samples = hdf5_file["train_data"].shape[0]
 num_val_samples = hdf5_file["val_data"].shape[0]
-class_weights = train_model_util.get_class_weight(hdf5_file["train_labels"])
+weights_dict = train_model_util.get_class_weight(hdf5_file["train_labels"])
+weights = list(weights_dict.values())
 
 print("train shape: ", num_train_samples)
 print("validation shape: ", num_val_samples)
-print("class weight:", class_weights)
+print("class weight:", weights)
+
+if torch.cuda.is_available():       
+  device = torch.device("cuda")
+  print(f'There are {torch.cuda.device_count()} GPU(s) available.')
+  print('Device name:', torch.cuda.get_device_name(0))
+  class_weights = torch.FloatTensor(weights).cuda()
+
+else:
+  print('No GPU available, using the CPU instead.')
+  device = torch.device("cpu")
+  class_weights = torch.FloatTensor(weights)
 
 model=test_model.EnvCnn() 
 print(model)
 model.to(device)
 
 optimizer = torch.optim.Adam(model.parameters(),lr = 1e-05)
-loss_fn = torch.nn.CrossEntropyLoss()
+loss_fn = torch.nn.CrossEntropyLoss(weight=class_weights)
 batch_size = 128
 epochs = 100
 
