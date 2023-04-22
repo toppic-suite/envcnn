@@ -14,16 +14,12 @@
 ##See the License for the specific language governing permissions and
 ##limitations under the License.
 
-import sys
-import os
 import torch
 import numpy
 import math
-import h5py
 import time
-import data.torch_models as models
-import data.train_model_util as train_model_util
-from pytorchtools import EarlyStopping
+import util.train_model_util as train_model_util
+from util.pytorchtools import EarlyStopping
 from matplotlib import pyplot
 
 # Convert train and validation sets to torch.Tensors and load them to
@@ -45,7 +41,7 @@ def data_loader(train_x, vali_x, train_y, vali_y, batch_size=512):
 
   return train_dataloader, vali_dataloader
 
-def train_epoch(model, loss_fn, train_dataloader):
+def train_epoch(device, model, optimizer, loss_fn, train_dataloader):
   total_loss = 0
   train_output=[]
   # Put the model into the training mode
@@ -96,7 +92,7 @@ def comp_accuracy(results, b_labels):
   #print(accuracy)
   return accuracy/results.shape[0]
 
-def validate_epoch(model, loss_fn, vali_dataloader):
+def validate_epoch(device, model, loss_fn, vali_dataloader):
   # Put the model into the evaluation mode. The dropout layers are disabled
   # during the test time.
   model.eval()
@@ -148,7 +144,7 @@ def plot_losses(logs, output):
 
 
 # Train the model
-def train(model, optimizer, loss_fn, x_train, x_test, y_train, y_test, batch_size, epochs):
+def train(device, model, optimizer, loss_fn, x_train, x_test, y_train, y_test, batch_size, epochs):
   # Tracking best validation accuracy
   logs={}
   logs['train_loss']=[]
@@ -164,18 +160,18 @@ def train(model, optimizer, loss_fn, x_train, x_test, y_train, y_test, batch_siz
   print(f"{'Epoch':^7} | {'Train Loss':^16} |  {'Validation Loss':^16} | {'Valid Accuracy':^16} | {'Elapsed':^9}")
   print("-"*60)
   if vali_dataloader is not None:
-    avg_vali_loss, avg_vali_accuracy, vali_output= validate_epoch(model, loss_fn, vali_dataloader)
+    avg_vali_loss, avg_vali_accuracy, vali_output= validate_epoch(device, model, loss_fn, vali_dataloader)
     print(f"{'Init':^7} | {'':^16} |  {avg_vali_loss:^16.6f} | {avg_vali_accuracy:^16.6f} | {'':^9}")
   for epoch_i in range(epochs):
     # Tracking time 
     t0_epoch = time.time()
     # Training
     if train_dataloader is not None:
-      avg_train_loss, train_output= train_epoch(model, loss_fn, train_dataloader)
+      avg_train_loss, train_output= train_epoch(device, model, optimizer, loss_fn, train_dataloader)
       logs['train_loss'].append(avg_train_loss)
     # Evaluation
     if vali_dataloader is not None:
-      avg_vali_loss, avg_vali_accuracy, vali_output= validate_epoch(model, loss_fn, vali_dataloader)
+      avg_vali_loss, avg_vali_accuracy, vali_output= validate_epoch(device, model, loss_fn, vali_dataloader)
       logs['validation_loss'].append(avg_vali_loss)
       # Track the best accuracy
       if avg_vali_loss < best_loss:
@@ -197,64 +193,3 @@ def train(model, optimizer, loss_fn, x_train, x_test, y_train, y_test, batch_siz
   plot_losses(logs, "result")
 
         
-# Main
-if torch.cuda.is_available():       
-    device = torch.device("cuda")
-    print(f'There are {torch.cuda.device_count()} GPU(s) available.')
-    print('Device name:', torch.cuda.get_device_name(0))
-
-else:
-    print('No GPU available, using the CPU instead.')
-    device = torch.device("cpu")
-
-t0 = time.time()
-data_dir = sys.argv[1]
-output_dir = train_model_util.create_output_directory("output")
-
-hdf5_file = h5py.File(data_dir, "r")
-num_train_samples = hdf5_file["train_data"].shape[0]
-num_val_samples = hdf5_file["val_data"].shape[0]
-class_weights = train_model_util.get_class_weight(hdf5_file["train_labels"])
-
-print("train shape: ", num_train_samples)
-print("validation shape: ", num_val_samples)
-print("class weight:", class_weights)
-
-model=models.EnvCnn() 
-print(model)
-model.to(device)
-
-optimizer = torch.optim.Adam(model.parameters(),lr = 1e-05)
-loss_fn = torch.nn.CrossEntropyLoss()
-batch_size = 128
-epochs = 200
-
-X = hdf5_file["train_data"]
-x_train = X[:,:,0:5]
-print("x_train shape", x_train.shape)
-x_train = x_train.astype(numpy.float32)
-torch_x_train = torch.from_numpy(x_train)
-# transpose the 2nd and 3rd dimension
-torch_x_train = torch_x_train.transpose(1,2)
-
-y_train = hdf5_file["train_labels"][:]
-y_train = y_train.astype(numpy.int64)
-torch_y_train = torch.from_numpy(y_train)
-
-X = hdf5_file["val_data"]
-x_vali = X[:,:,0:5]
-print("x_vali shape", x_vali.shape)
-x_vali = x_vali.astype(numpy.float32)
-torch_x_vali = torch.from_numpy(x_vali)
-torch_x_vali = torch_x_vali.transpose(1,2)
-
-y_vali = hdf5_file["val_labels"][:]
-y_vali = y_vali.astype(numpy.int64)
-torch_y_vali = torch.from_numpy(y_vali)
-
-train(model, optimizer, loss_fn, torch_x_train, torch_x_vali, torch_y_train,
-        torch_y_vali, batch_size, epochs)
-
-t1 = time.time()
-total = t1-t0
-print("Running time:", total)
