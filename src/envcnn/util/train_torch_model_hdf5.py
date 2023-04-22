@@ -144,7 +144,8 @@ def plot_losses(logs, output):
 
 
 # Train the model
-def train(device, model, optimizer, loss_fn, x_train, x_test, y_train, y_test, batch_size, epochs):
+def train(device, model, optimizer, loss_fn, x_train, x_test, y_train, y_test,
+    batch_size, epochs, output_model_file):
   # Tracking best validation accuracy
   logs={}
   logs['train_loss']=[]
@@ -153,7 +154,7 @@ def train(device, model, optimizer, loss_fn, x_train, x_test, y_train, y_test, b
   best_loss = 100000
 
   train_dataloader, vali_dataloader = data_loader(x_train, x_test, y_train, y_test, batch_size)
-  early_stopping = EarlyStopping(patience=30, verbose=True, path = "early_stop_checkpoint.pt")
+  early_stopping = EarlyStopping(path = output_model_file, patience = 30, verbose = True)
 
   # Start training loop
   print("Start training...\n")
