@@ -18,28 +18,20 @@ import torch
 import numpy
 import math
 import time
+import csv
 import util.train_model_util as train_model_util
 from util.pytorchtools import EarlyStopping
 from matplotlib import pyplot
 
-# Convert train and validation sets to torch.Tensors and load them to
-# DataLoader.
-def data_loader(train_x, vali_x, train_y, vali_y, batch_size=512):
-  train_x=torch.Tensor(train_x)
-  train_y=torch.Tensor(train_y)
-
-  # Create DataLoader for training data
-  train_dataset = torch.utils.data.TensorDataset(train_x, train_y)
-  train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size)
-
-  vali_x=torch.Tensor(vali_x)
-  vali_y=torch.Tensor(vali_y)
+def data_loader(x, y, batch = 512):
+  torch_x=torch.Tensor(x)
+  torch_y=torch.Tensor(y)
 
   # Create DataLoader for testidation data
-  vali_dataset = torch.utils.data.TensorDataset(vali_x, vali_y)
-  vali_dataloader = torch.utils.data.DataLoader(vali_dataset, batch_size=batch_size)
+  dataset = torch.utils.data.TensorDataset(x, y)
+  dataloader = torch.utils.data.DataLoader(dataset, batch_size = batch)
 
-  return train_dataloader, vali_dataloader
+  return dataloader
 
 def train_epoch(device, model, optimizer, loss_fn, train_dataloader):
   total_loss = 0
@@ -153,7 +145,8 @@ def train(device, model, optimizer, loss_fn, x_train, x_test, y_train, y_test,
   # Set best loss to a large number
   best_loss = 100000
 
-  train_dataloader, vali_dataloader = data_loader(x_train, x_test, y_train, y_test, batch_size)
+  train_dataloader = data_loader(x_train, y_train, batch_size)
+  vali_dataloader = data_loader(x_test, y_test, batch_size)
   early_stopping = EarlyStopping(path = output_model_file, patience = 30, verbose = True)
 
   # Start training loop
@@ -193,4 +186,19 @@ def train(device, model, optimizer, loss_fn, x_train, x_test, y_train, y_test,
 
   plot_losses(logs, "result")
 
-        
+
+# Test the model
+def test(device, model, loss_fn, x_test, y_test, batch_size, output_result_file):
+
+  vali_dataloader = data_loader(x_test, y_test, batch_size)
+  print("Start evaluation...\n")
+  if vali_dataloader is not None:
+    avg_vali_loss, avg_vali_accuracy, vali_output= validate_epoch(device, model, loss_fn, vali_dataloader)
+    print("Validation loss:", avg_vali_loss, "Validation accuracy:", avg_vali_accuracy)
+    #print("Validation output", vali_output)
+    output_file = open(output_result_file, "w")
+    writer = csv.writer(output_file)
+    for b in vali_output:
+      for row in b:
+        writer.writerow(row)
+    output_file.close()

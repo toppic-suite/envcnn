@@ -34,6 +34,9 @@ class Envelope:
     feature = ""
     return cls(header, theo_peak_list, exp_peak_list, min_exp_mz, feature)
 
+  def get_header(self):
+    return self.header
+
   def get_intv_peak_list(self):
     intv_peak_list = []
     min_theo_peak = min(self.theo_peak_list, key=lambda x: x.mass).mass

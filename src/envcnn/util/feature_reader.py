@@ -15,10 +15,10 @@
 #!/usr/bin/python3
 
 import os
-from EnvCNN.Data.envelope import Envelope
-from EnvCNN.Data.peak import Peak
-from EnvCNN.Data.env_header import EnvHeader
-from EnvCNN.Data.feature import Feature
+from util.envelope import Envelope
+from util.peak import Peak
+from util.env_header import EnvHeader
+from util.feature import Feature
 
 def _read_header(env_lines):
   peak_id = -1
