@@ -85,6 +85,9 @@ for i in range(len(x_train)):
 
 print("filter_x_train shape", filt_x_train.shape)
 
+filt_x_train = filt_x_train.astype(numpy.float32)
+filt_y_train = filt_y_train.astype(numpy.int64)
+
 torch_x_train = torch.from_numpy(filt_x_train)
 # transpose the 2nd and 3rd dimension
 torch_x_train = torch_x_train.transpose(1,2)
@@ -114,9 +117,12 @@ for i in range(len(x_vali)):
 
 print("filter_x_validation shape", filt_x_vali.shape)
 
-torch_x_vali = torch.from_numpy(x_vali)
+filt_x_vali = filt_x_vali.astype(numpy.float32)
+filt_y_vali = filt_y_vali.astype(numpy.int64)
+
+torch_x_vali = torch.from_numpy(filt_x_vali)
 torch_x_vali = torch_x_vali.transpose(1,2)
-torch_y_vali = torch.from_numpy(y_vali)
+torch_y_vali = torch.from_numpy(filt_y_vali)
 
 output_model_file = "two_block_vgg_four_feature_charge_4.model"
 
