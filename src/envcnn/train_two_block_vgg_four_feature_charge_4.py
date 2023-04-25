@@ -29,6 +29,7 @@ import torch_model.torch_two_block_vgg_four_feature as test_model
 # Main
 t0 = time.time()
 data_dir = sys.argv[1]
+sele_charge = int(sys.argv[2])
 
 hdf5_file = h5py.File(data_dir, "r")
 num_train_samples = hdf5_file["train_data"].shape[0]
@@ -54,6 +55,7 @@ else:
 model=test_model.EnvCnn() 
 print(model)
 model.to(device)
+#model.load_state_dict(torch.load("two_block_vgg_four_feature.model", map_location=device))
 
 optimizer = torch.optim.Adam(model.parameters(),lr = 1e-05)
 loss_fn = torch.nn.CrossEntropyLoss(weight=class_weights)
@@ -71,13 +73,13 @@ y_train = y_train.astype(numpy.int64)
 train_df = pandas.read_csv("train_detail.txt", header=None)
 count = 0
 for i in range(len(x_train)):
-  if int(train_df.iloc[i,5]) == 4:
+  if int(train_df.iloc[i,5]) == sele_charge:
     count = count + 1
 filt_x_train = numpy.empty(shape=(count, 300, 4))
 filt_y_train = numpy.empty(shape=(count))
 count = 0
 for i in range(len(x_train)):
-  if int(train_df.iloc[i,5]) == 4:
+  if int(train_df.iloc[i,5]) == sele_charge:
     filt_x_train[count] = x_train[i]
     filt_y_train[count] = y_train[i]
     count = count + 1
@@ -104,13 +106,14 @@ y_vali = y_vali.astype(numpy.int64)
 vali_df = pandas.read_csv("valid_detail.txt", header=None)
 count = 0
 for i in range(len(x_vali)):
-  if int(vali_df.iloc[i,9]) == 4:
+  if int(vali_df.iloc[i,9]) == sele_charge:
     count = count + 1
 filt_x_vali = numpy.empty(shape=(count, 300, 4))
 filt_y_vali = numpy.empty(shape=(count))
 count = 0
 for i in range(len(x_vali)):
-  if int(vali_df.iloc[i,9]) == 4:
+  if int(vali_df.iloc[i,9]) == sele_charge:
+    #print(i, y_vali[i])
     filt_x_vali[count] = x_vali[i]
     filt_y_vali[count] = y_vali[i]
     count = count + 1
@@ -126,6 +129,8 @@ torch_y_vali = torch.from_numpy(filt_y_vali)
 
 output_model_file = "two_block_vgg_four_feature_charge_4.model"
 
+#train_model.test(device, model, loss_fn, torch_x_vali, 
+#                  torch_y_vali, batch_size, output_model_file)
 
 train_model.train(device, model, optimizer, loss_fn, torch_x_train, torch_x_vali, torch_y_train,
                   torch_y_vali, batch_size, epochs, output_model_file)
